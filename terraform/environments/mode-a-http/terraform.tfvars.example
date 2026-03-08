@@ -1,9 +1,0 @@
-aws_region      = "us-east-1"
-name_prefix     = "vpc-lattice-ecs-demo-a"
-dashboard_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/dashboard-service:latest"
-counting_image  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/counting-service:latest"
-
-tags = {
-  Environment = "dev"
-  Owner       = "platform"
-}
