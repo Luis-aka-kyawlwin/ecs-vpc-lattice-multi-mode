@@ -1,0 +1,12 @@
+aws_region      = "us-east-1"
+name_prefix     = "vpc-lattice-ecs-demo-c"
+dashboard_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/dashboard-service:latest"
+counting_image  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/counting-service:latest"
+certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+
+counting_service_port = 9003
+
+tags = {
+  Environment = "dev"
+  Owner       = "platform"
+}

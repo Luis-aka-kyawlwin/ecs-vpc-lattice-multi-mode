@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VPC Lattice Architecture - Modes A and B</title>
+  <style>
+    :root {
+      --region-bg: #e7e7ea;
+      --region-border: #2f3540;
+      --acct-border: #ec008c;
+      --vpc-border: #7a4dff;
+      --txt: #111827;
+      --card: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f6fa; font-family: Arial, Helvetica, sans-serif; color: var(--txt); }
+    .wrap { max-width: 1800px; margin: 0 auto; padding: 10px; }
+    .region { background: var(--region-bg); border: 3px solid var(--region-border); padding: 14px; }
+    .header { display: flex; align-items: center; gap: 10px; font-size: 34px; font-weight: 700; margin-bottom: 12px; }
+    .aws-pill { width: 54px; height: 44px; background: #232f3e; color: #fff; display: grid; place-items: center; font-size: 19px; font-weight: 700; }
+    .mode { border: 3px solid #94a3b8; background: var(--card); margin-bottom: 14px; padding: 12px; }
+    .mode h2 { margin: 0 0 10px; font-size: 30px; }
+    .grid { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 12px; }
+    .account { border: 2px solid var(--acct-border); padding: 10px; min-height: 390px; }
+    .account h3 { margin: 0 0 8px; font-size: 28px; font-weight: 500; }
+    .vpc { border: 2px solid var(--vpc-border); background: rgba(239,232,255,.45); padding: 10px; margin-top: 8px; }
+    .vpc h4 { margin: 0 0 8px; font-size: 24px; font-weight: 500; }
+    .node { border: 2px solid var(--vpc-border); background: #efe8ff; padding: 10px; margin-top: 10px; }
+    .node h4 { margin: 0 0 6px; font-size: 22px; font-weight: 600; }
+    .small { font-size: 17px; line-height: 1.35; color: #374151; }
+    .flow { margin-top: 10px; border: 2px solid #cbd5e1; background: #fff; padding: 8px 10px; font-size: 18px; line-height: 1.35; }
+    .cert { margin-top: 12px; border: 2px solid #0b7bbb; background: #f0f9ff; padding: 10px; }
+    .cert h3 { margin: 0 0 8px; font-size: 24px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px; }
+    @media (max-width: 1280px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="region">
+      <div class="header"><div class="aws-pill">aws</div><div>AWS Region (ap-southeast-1)</div></div>
+
+      <section class="mode" id="mode-a">
+        <h2>Mode A - HTTP Cross-VPC via VPC Lattice</h2>
+        <div class="grid">
+          <section class="account">
+            <h3>AWS account A</h3>
+            <div class="vpc">
+              <h4>Dashboard VPC A</h4>
+              <div class="small">vpc-0a4bb7b13746a93ba | CIDR 10.10.0.0/16</div>
+              <div class="small">Private subnets: 10.10.10.0/24, 10.10.11.0/24</div>
+              <div class="small">ECS Service: vpc-lattice-ecs-demo-a-dashboard</div>
+              <div class="small">Task IP: 10.10.11.180 | Port 9002 | Fargate</div>
+            </div>
+          </section>
+          <section class="account">
+            <h3>AWS account Shared Lattice</h3>
+            <div class="node">
+              <h4>Service Network</h4>
+              <div class="small">Name: demo-service-network</div>
+              <div class="small">ID: sn-04cbb9f2fa5d17266</div>
+            </div>
+            <div class="node">
+              <h4>Lattice Service: counting-service</h4>
+              <div class="small">Service ID: svc-02aafaf00668f74a4</div>
+              <div class="small">DNS: vpc-lattice-ecs-demo-a-http-02aafaf00668f74a4.7d67968.vpc-lattice-svcs.ap-southeast-1.on.aws</div>
+            </div>
+            <div class="node">
+              <h4>Listener + Target Group</h4>
+              <div class="small">HTTP Listener Port 80</div>
+              <div class="small">TG: tg-0555bc4f5af1f4296 | HTTP:9003 | /health</div>
+              <div class="small">Healthy target: 10.20.10.188:9003</div>
+            </div>
+          </section>
+          <section class="account">
+            <h3>AWS account B</h3>
+            <div class="vpc">
+              <h4>Counting Service VPC B</h4>
+              <div class="small">vpc-05bc135e3bb1595ef | CIDR 10.20.0.0/16</div>
+              <div class="small">Private subnets: 10.20.10.0/24, 10.20.11.0/24</div>
+              <div class="small">ECS Service: vpc-lattice-ecs-demo-a-counting</div>
+              <div class="small">Task IP: 10.20.10.188 | Port 9003 | Fargate</div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="mode" id="mode-b">
+        <h2>Mode B - Public HTTPS ALB + Internal VPC Lattice HTTPS</h2>
+        <div class="grid">
+          <section class="account">
+            <h3>Public Entry (Account A)</h3>
+            <div class="node">
+              <h4>Internet-facing ALB</h4>
+              <div class="small">DNS: vpc-lattice-ecs-demo-b-dash-alb-227701707.ap-southeast-1.elb.amazonaws.com</div>
+              <div class="small">Listener 80: redirect to 443</div>
+              <div class="small">Listener 443: HTTPS with ACM cert</div>
+            </div>
+            <div class="vpc">
+              <h4>Dashboard VPC</h4>
+              <div class="small">CIDR 10.30.0.0/16</div>
+              <div class="small">ECS: vpc-lattice-ecs-demo-b-dashboard | Port 9002</div>
+            </div>
+          </section>
+          <section class="account">
+            <h3>Shared Lattice</h3>
+            <div class="node">
+              <h4>VPC Lattice HTTPS Service</h4>
+              <div class="small">DNS: vpc-lattice-ecs-demo-b-https-034f26a14b1e5b1e3.7d67968.vpc-lattice-svcs.ap-southeast-1.on.aws</div>
+              <div class="small">Target group suffix: tg-05bae33b9b567cbb9</div>
+            </div>
+            <div class="node">
+              <h4>Traffic Path</h4>
+              <div class="small">Client -> ALB HTTPS -> Dashboard -> Lattice HTTPS -> Counting</div>
+            </div>
+          </section>
+          <section class="account">
+            <h3>Backend (Account B)</h3>
+            <div class="vpc">
+              <h4>Counting VPC</h4>
+              <div class="small">CIDR 10.40.0.0/16</div>
+              <div class="small">ECS: vpc-lattice-ecs-demo-b-counting | Port 9003</div>
+            </div>
+          </section>
+        </div>
+
+        <div class="cert">
+          <h3>Mode B Certificate (ACM Imported from Local OpenSSL)</h3>
+          <div class="small">Used by components:</div>
+          <div class="small mono">1) ALB listener 443: arn:aws:elasticloadbalancing:ap-southeast-1:474668398308:loadbalancer/app/vpc-lattice-ecs-demo-b-dash-alb/9157ec269210de0b</div>
+          <div class="small mono">2) VPC Lattice service: arn:aws:vpc-lattice:ap-southeast-1:474668398308:service/svc-034f26a14b1e5b1e3</div>
+          <br>
+          <div class="small"><strong>Certificate ARN:</strong> <span class="mono">arn:aws:acm:ap-southeast-1:474668398308:certificate/29072b95-c6f8-497f-9bb0-6a1c9455fc56</span></div>
+          <div class="small"><strong>Domain:</strong> modeb.local (+ *.modeb.local)</div>
+          <div class="small"><strong>Issuer:</strong> vpc-lattice-ecs-demo</div>
+          <div class="small"><strong>Issued (NotBefore):</strong> 2026-03-08T21:24:53+08:00</div>
+          <div class="small"><strong>Expires (NotAfter):</strong> 2027-03-08T21:24:53+08:00</div>
+          <div class="small"><strong>Type:</strong> IMPORTED | <strong>Status:</strong> ISSUED</div>
+        </div>
+      </section>
+
+      <section class="mode" id="mode-c">
+        <h2>Mode C</h2>
+        <div class="small">Mode C section intentionally left for later.</div>
+      </section>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,15 @@
+aws_region      = "ap-southeast-1"
+name_prefix     = "vpc-lattice-ecs-demo-b"
+dashboard_image = "123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/dashboard-service:latest"
+counting_image  = "123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/counting-service:latest"
+counting_service_port = 9003
+certificate_arn = "arn:aws:acm:ap-southeast-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+custom_domain_name = "modeb.local"
+enable_nat_gateway = false
+enable_public_alb = true
+alb_ingress_cidr_blocks = ["0.0.0.0/0"]
+
+tags = {
+  Environment = "dev"
+  Owner       = "platform"
+}
